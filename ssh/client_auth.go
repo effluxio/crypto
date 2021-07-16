@@ -350,7 +350,7 @@ func handleAuthResponse(c packetConn) (authResult, []string, error) {
 		case msgUserAuthFailure:
 			var msg userAuthFailureMsg
 			if err := Unmarshal(packet, &msg); err != nil {
-				return authFailure, nil, err
+				return authFailure, msg.Methods, err
 			}
 			if msg.PartialSuccess {
 				return authPartialSuccess, msg.Methods, nil
