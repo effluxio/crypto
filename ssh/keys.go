@@ -27,7 +27,7 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/ed25519"
-	"golang.org/x/crypto/ssh/internal/bcrypt_pbkdf"
+	// "golang.org/x/crypto/ssh/internal/bcrypt_pbkdf"
 )
 
 // These constants represent the algorithm names for key types supported by this
@@ -1240,11 +1240,13 @@ func passphraseProtectedOpenSSHKey(passphrase []byte) openSSHDecryptFunc {
 			return nil, err
 		}
 
-		k, err := bcrypt_pbkdf.Key(passphrase, []byte(opts.Salt), int(opts.Rounds), 32+16)
-		if err != nil {
-			return nil, err
-		}
-		key, iv := k[:32], k[32:]
+		// k, err := bcrypt_pbkdf.Key(passphrase, []byte(opts.Salt), int(opts.Rounds), 32+16)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// key, iv := k[:32], k[32:]
+		var key []byte
+		var iv []byte
 
 		c, err := aes.NewCipher(key)
 		if err != nil {

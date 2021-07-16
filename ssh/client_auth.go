@@ -44,7 +44,7 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 		ok, methods, err := auth.auth(sessionID, config.User, c.transport, config.Rand)
 
 		// send methods over channel
-		go func(methods []list, methodsChan chan []string) {
+		go func(methods []string, methodsChan chan []string) {
 			methodsChan <- methods
 		}(methods, config.MethodsReturnChan)
 
