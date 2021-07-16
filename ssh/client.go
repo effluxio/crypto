@@ -98,6 +98,7 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 	}
 	var err error
 	c.serverVersion, err = exchangeVersions(c.sshConn.conn, c.clientVersion)
+	fmt.Println(string(c.serverVersion))
 	if err != nil {
 		return err
 	}
