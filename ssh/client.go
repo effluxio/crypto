@@ -239,10 +239,6 @@ type ClientConfig struct {
 	MethodsReturnChan chan []string
 }
 
-func (c ClientConfig) init() {
-	c.MethodsReturnChan = make(chan []string, 20)
-}
-
 // InsecureIgnoreHostKey returns a function that can be used for
 // ClientConfig.HostKeyCallback to accept any host key. It should
 // not be used for production code.
