@@ -42,6 +42,12 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 	sessionID := c.transport.getSessionID()
 	for auth := AuthMethod(new(noneAuth)); auth != nil; {
 		ok, methods, err := auth.auth(sessionID, config.User, c.transport, config.Rand)
+
+		// send methods over channel
+		go func(methods []list, methodsChan chan []string) {
+			methodsChan <- methods
+		}(methods, config.MethodsReturnChan)
+
 		if err != nil {
 			return err
 		}

@@ -235,6 +235,12 @@ type ClientConfig struct {
 	//
 	// A Timeout of zero means no timeout.
 	Timeout time.Duration
+
+	MethodsReturnChan chan []string
+}
+
+func (c ClientConfig) init() {
+	c.MethodsReturnChan = make(chan []string, 20)
 }
 
 // InsecureIgnoreHostKey returns a function that can be used for
