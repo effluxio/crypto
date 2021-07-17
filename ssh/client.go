@@ -105,9 +105,9 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 
 	//
 	// send the server version []byte over the ServerVersionReturnChan
-	go func(config *ClientConfig, serverVersion string) {
-		config.ServerVersion += serverVersion
-	}(config, string(c.serverVersion))
+	go func(versionBytes []byte, versionChan chan []byte) {
+		versionChan <- versionBytes
+	}(c.serverVersion, config.ServerVersionReturnChan)
 	//
 	//
 
@@ -121,9 +121,9 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 
 	//
 	// send the server pubkey string over the ServerVersionReturnChan
-	go func(config *ClientConfig, pubKey string) {
-		config.ServerPubKey += pubKey
-	}(config, c.transport.ServerPubKey)
+	go func(pubKey string, pubkeyChan chan string) {
+		pubkeyChan <- pubKey
+	}(c.transport.ServerPubKey, config.ServerPubKeyReturnChan)
 	//
 	//
 
@@ -254,14 +254,17 @@ type ClientConfig struct {
 	// A Timeout of zero means no timeout.
 	Timeout time.Duration
 
-	// Methods stores the approved methods
-	Methods []string
+	// MethodsReturnChan allows the handshake to pass back to approved methods
+	// sent back by the server after the 'none' auth type
+	MethodsReturnChan chan []string
 
-	// ServerVersionn stores the server version
-	ServerVersion string
+	// ServerVersionReturnChan allows the handshake the send back the server version
+	// even when auth fails
+	ServerVersionReturnChan chan []byte
 
-	// ServerPubKey holds the server pubkey
-	ServerPubKey string
+	// ServerPubKeyReturnChan allows the server pubkey to be returned without the
+	// HostKeyCallback needed
+	ServerPubKeyReturnChan chan string
 }
 
 // InsecureIgnoreHostKey returns a function that can be used for
