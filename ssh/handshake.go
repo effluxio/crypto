@@ -94,6 +94,8 @@ type handshakeTransport struct {
 
 	// The session ID or nil if first kex did not complete yet.
 	sessionID []byte
+
+	ServerPubKey string
 }
 
 type pendingKex struct {
@@ -638,7 +640,7 @@ func (t *handshakeTransport) client(kex kexAlgorithm, algs *algorithms, magics *
 		return nil, err
 	}
 
-	err = t.hostKeyCallback(t.dialAddress, t.remoteAddr, hostKey)
+	t.ServerPubKey, err = t.hostKeyCallback(t.dialAddress, t.remoteAddr, hostKey)
 	if err != nil {
 		return nil, err
 	}

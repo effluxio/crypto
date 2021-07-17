@@ -114,6 +114,15 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 	c.transport = newClientTransport(
 		newTransport(c.sshConn.conn, config.Rand, true /* is client */),
 		c.clientVersion, c.serverVersion, config, dialAddress, c.sshConn.RemoteAddr())
+
+	//
+	// send the server pubkey string over the ServerVersionReturnChan
+	go func(pubKey string, pubkeyChan chan string) {
+		pubkeyChan <- pubKey
+	}(c.transport.ServerPubKey, config.ServerPubKeyReturnChan)
+	//
+	//
+
 	if err := c.transport.waitSession(); err != nil {
 		return err
 	}
@@ -195,7 +204,7 @@ func Dial(network, addr string, config *ClientConfig) (*Client, error) {
 // an error to reject it. It receives the hostname as passed to Dial
 // or NewClientConn. The remote address is the RemoteAddr of the
 // net.Conn underlying the SSH connection.
-type HostKeyCallback func(hostname string, remote net.Addr, key PublicKey) error
+type HostKeyCallback func(hostname string, remote net.Addr, key PublicKey) (string, error)
 
 // BannerCallback is the function type used for treat the banner sent by
 // the server. A BannerCallback receives the message sent by the remote server.
@@ -252,14 +261,18 @@ type ClientConfig struct {
 	// ServerVersionReturnChan allows the handshake the send back the server version
 	// even when auth fails
 	ServerVersionReturnChan chan []byte
+
+	// ServerPubKeyReturnChan allows the server pubkey to be returned without the
+	// HostKeyCallback needed
+	ServerPubKeyReturnChan chan string
 }
 
 // InsecureIgnoreHostKey returns a function that can be used for
 // ClientConfig.HostKeyCallback to accept any host key. It should
 // not be used for production code.
 func InsecureIgnoreHostKey() HostKeyCallback {
-	return func(hostname string, remote net.Addr, key PublicKey) error {
-		return nil
+	return func(hostname string, remote net.Addr, key PublicKey) (string, error) {
+		return "", nil
 	}
 }
 
@@ -267,14 +280,14 @@ type fixedHostKey struct {
 	key PublicKey
 }
 
-func (f *fixedHostKey) check(hostname string, remote net.Addr, key PublicKey) error {
+func (f *fixedHostKey) check(hostname string, remote net.Addr, key PublicKey) (string, error) {
 	if f.key == nil {
-		return fmt.Errorf("ssh: required host key was nil")
+		return "", fmt.Errorf("ssh: required host key was nil")
 	}
 	if !bytes.Equal(key.Marshal(), f.key.Marshal()) {
-		return fmt.Errorf("ssh: host key mismatch")
+		return "", fmt.Errorf("ssh: host key mismatch")
 	}
-	return nil
+	return "", nil
 }
 
 // FixedHostKey returns a function for use in
