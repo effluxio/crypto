@@ -115,6 +115,10 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 		newTransport(c.sshConn.conn, config.Rand, true /* is client */),
 		c.clientVersion, c.serverVersion, config, dialAddress, c.sshConn.RemoteAddr())
 
+	if err := c.transport.waitSession(); err != nil {
+		return err
+	}
+
 	//
 	// send the server pubkey string over the ServerVersionReturnChan
 	go func(pubKey string, pubkeyChan chan string) {
@@ -122,10 +126,6 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 	}(c.transport.ServerPubKey, config.ServerPubKeyReturnChan)
 	//
 	//
-
-	if err := c.transport.waitSession(); err != nil {
-		return err
-	}
 
 	c.sessionID = c.transport.getSessionID()
 	return c.clientAuthenticate(config)
