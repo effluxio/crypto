@@ -310,7 +310,8 @@ func (c *CertChecker) CheckHostKey(addr string, remote net.Addr, key PublicKey) 
 	cert, ok := key.(*Certificate)
 	if !ok {
 		if c.HostKeyFallback != nil {
-			return c.HostKeyFallback(addr, remote, key)
+			_, cb := c.HostKeyFallback(addr, remote, key)
+			return cb
 		}
 		return errors.New("ssh: non-certificate host key")
 	}
