@@ -98,7 +98,13 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 	}
 	var err error
 	c.serverVersion, err = exchangeVersions(c.sshConn.conn, c.clientVersion)
-	fmt.Println(string(c.serverVersion))
+
+	//
+	// send the server version []byte over the ServerVersionReturnChan
+	config.ServerVersionReturnChan <- c.serverVersion
+	//
+	//
+
 	if err != nil {
 		return err
 	}
@@ -237,7 +243,13 @@ type ClientConfig struct {
 	// A Timeout of zero means no timeout.
 	Timeout time.Duration
 
+	// MethodsReturnChan allows the handshake to pass back to approved methods
+	// sent back by the server after the 'none' auth type
 	MethodsReturnChan chan []string
+
+	// ServerVersionReturnChan allows the handshake the send back the server version
+	// even when auth fails
+	ServerVersionReturnChan chan []byte
 }
 
 // InsecureIgnoreHostKey returns a function that can be used for
