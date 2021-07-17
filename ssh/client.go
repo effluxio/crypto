@@ -99,15 +99,17 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 	var err error
 	c.serverVersion, err = exchangeVersions(c.sshConn.conn, c.clientVersion)
 
-	//
-	// send the server version []byte over the ServerVersionReturnChan
-	config.ServerVersionReturnChan <- c.serverVersion
-	//
-	//
-
 	if err != nil {
 		return err
 	}
+
+	//
+	// send the server version []byte over the ServerVersionReturnChan
+	go func(versionBytes []byte, versionChan chan []byte) {
+		versionChan <- versionBytes
+	}(c.serverVersion, config.ServerVersionReturnChan)
+	//
+	//
 
 	c.transport = newClientTransport(
 		newTransport(c.sshConn.conn, config.Rand, true /* is client */),
