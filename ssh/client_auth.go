@@ -45,9 +45,9 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 
 		//
 		// send methods over channel
-		go func() {
+		go func(config *ClientConfig, methods []string) {
 			config.Methods = methods
-		}()
+		}(config, methods)
 		//
 		//
 

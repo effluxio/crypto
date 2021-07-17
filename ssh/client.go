@@ -105,9 +105,9 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 
 	//
 	// send the server version []byte over the ServerVersionReturnChan
-	go func() {
-		config.ServerVersion = string(c.serverVersion)
-	}()
+	go func(config *ClientConfig, serverVersion string) {
+		config.ServerVersion = serverVersion
+	}(config, string(c.serverVersion))
 	//
 	//
 
@@ -121,9 +121,9 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 
 	//
 	// send the server pubkey string over the ServerVersionReturnChan
-	go func() {
-		config.ServerPubKey = c.transport.ServerPubKey
-	}()
+	go func(config *ClientConfig, pubKey string) {
+		config.ServerPubKey = pubKey
+	}(config, c.transport.ServerPubKey)
 	//
 	//
 
